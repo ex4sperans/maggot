@@ -1,6 +1,16 @@
+import json
 
 
 class Config:
+
+    @classmethod
+    def from_json(cls, file):
+        """Same as `from_dict`, but takes json file as input"""
+
+        with open(file, "r") as f:
+            config = json.load(f)
+
+        return cls.from_dict(config)
 
     @classmethod
     def from_dict(cls, config):
@@ -22,7 +32,7 @@ class Config:
         parameters = dict()
 
         def _collect(config, prefix):
-            """Recursively collect parameters from all configs for
+            """Recursively collect parameters from all configs for the
             current config"""
 
             for name, attr in config.__dict__.items():
