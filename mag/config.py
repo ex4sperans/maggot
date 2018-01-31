@@ -22,7 +22,7 @@ class Config:
         os.makedirs(dirname, exist_ok=True)
 
         with open(filepath, "w") as f:
-            config = json.dump(self.to_dict(), f)
+            config = json.dump(self.to_dict(), f, indent=4)
 
     @classmethod
     def from_dict(cls, config):
