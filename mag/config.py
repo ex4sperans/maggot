@@ -1,3 +1,5 @@
+import os
+
 import json
 from collections import OrderedDict
 
@@ -5,13 +7,22 @@ from collections import OrderedDict
 class Config:
 
     @classmethod
-    def from_json(cls, file):
+    def from_json(cls, filepath):
         """Same as `from_dict`, but takes json file as input"""
 
-        with open(file, "r") as f:
+        with open(filepath, "r") as f:
             config = json.load(f)
 
         return cls.from_dict(config)
+
+    def to_json(self, filepath):
+        """Saves config as JSON file"""
+
+        dirname = os.path.dirname(filepath)
+        os.makedirs(dirname, exist_ok=True)
+
+        with open(filepath, "w") as f:
+            config = json.dump(self.to_dict(), f)
 
     @classmethod
     def from_dict(cls, config):
@@ -26,6 +37,24 @@ class Config:
                 setattr(_config, name, Config.from_dict(attr))
 
         return _config
+
+    def to_dict(self):
+        """Recursively create dict from Config"""
+
+        dict_config = dict()
+
+        def _copy_fields(config, dict_config):
+
+            for name, attr in config.__dict__.items():
+                if not isinstance(attr, Config):
+                    dict_config[name] = attr
+                else:
+                    dict_config[name] = dict()
+                    _copy_fields(attr, dict_config[name])
+
+        _copy_fields(self, dict_config)
+
+        return dict_config
 
     def as_flat_dict(self):
         """Returns an OrderedDict with mapping (full_parameter_name -> attr)"""

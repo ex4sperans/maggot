@@ -46,6 +46,14 @@ def test_config_from_dict(simple_dict_config, nested_dict_config):
     assert config.c.b == [1, 2, 3]
 
 
+def test_config_to_dict(nested_dict_config):
+
+    config = Config.from_dict(nested_dict_config)
+    recovered_dict = config.to_dict()
+
+    assert nested_dict_config == recovered_dict
+
+
 def test_config_as_flat_dict(nested_dict_config):
 
     flat_dict = Config.from_dict(nested_dict_config).as_flat_dict()
@@ -67,6 +75,18 @@ def test_config_from_json(nested_dict_config, tmpdir):
     assert config._b == "a"
     assert config.c.a == 10
     assert config.c.b == [1, 2, 3]
+
+
+def test_config_to_json(nested_dict_config, tmpdir):
+
+    filepath = tmpdir.join("nested_dict_config.json").strpath
+
+    config = Config.from_dict(nested_dict_config)
+    config.to_json(filepath)
+
+    recovered_config = Config.from_json(filepath)
+
+    assert config.to_dict() == recovered_config.to_dict()
 
 
 def test_config_indentifier(nested_dict_config):
