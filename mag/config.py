@@ -1,4 +1,5 @@
 import json
+from collections import OrderedDict
 
 
 class Config:
@@ -27,15 +28,21 @@ class Config:
         return _config
 
     def as_flat_dict(self):
-        """Returns a dict with mapping (full_parameter_name -> attr)"""
+        """Returns an OrderedDict with mapping (full_parameter_name -> attr)"""
 
-        parameters = dict()
+        parameters = OrderedDict()
 
         def _collect(config, prefix):
             """Recursively collect parameters from all configs for the
             current config"""
 
-            for name, attr in config.__dict__.items():
+            # sort __dict__ for reproducibility
+            fields = config.__dict__
+            keylist = list(fields.keys())
+            keylist.sort()
+            sorted_fields = OrderedDict((k, fields[k]) for k in keylist)
+
+            for name, attr in sorted_fields.items():
                 full_name = ".".join((prefix, name)) if prefix else name
                 if isinstance(attr, Config):
                     _collect(attr, full_name)
@@ -45,3 +52,35 @@ class Config:
         _collect(self, "")
 
         return parameters
+
+    @property
+    def identifier(self):
+
+        parameters = self.as_flat_dict()
+
+        def sort_key(item):
+            name, attr = item
+            *prefix, base = name.split(".")
+            return base
+
+        # convert values to strings
+        parameters = OrderedDict((k, value_to_string(v, k))
+                                 for k, v in parameters.items())
+        # discard parameters that start with underscore
+        # by convention, they are considered as `non-descriptive`
+        # i.e. not used in the identifier
+        parameters = OrderedDict((k, v) for k, v in parameters.items()
+                                    if not k.startswith("_"))
+
+        return "|".join(parameters.values())
+
+
+def value_to_string(value, name):
+    """Translates values (e.g. lists, ints, booleans) to strings"""
+
+    if isinstance(value, list):
+        return "x".join(map(str, value))
+    if isinstance(value, bool):
+        return name if value else "no_" + name
+    else:
+        return str(value)

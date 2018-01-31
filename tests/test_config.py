@@ -23,7 +23,7 @@ def nested_dict_config(simple_dict_config):
 
     config = dict(
         a=10,
-        b="a",
+        _b="a",
         c=simple_dict_config
     )
 
@@ -41,7 +41,7 @@ def test_config_from_dict(simple_dict_config, nested_dict_config):
     config = Config.from_dict(nested_dict_config)
 
     assert config.a == 10
-    assert config.b == "a"
+    assert config._b == "a"
     assert config.c.a == 10
     assert config.c.b == [1, 2, 3]
 
@@ -64,6 +64,15 @@ def test_config_from_json(nested_dict_config, tmpdir):
     config = Config.from_json(filepath)
 
     assert config.a == 10
-    assert config.b == "a"
+    assert config._b == "a"
     assert config.c.a == 10
     assert config.c.b == [1, 2, 3]
+
+
+def test_config_indentifier(nested_dict_config):
+
+    config = Config.from_dict(nested_dict_config)
+
+    # identifier should be sorted as follows:
+    # a, c.a, c.b, c.c
+    assert config.identifier == "10|10|1x2x3|a"
