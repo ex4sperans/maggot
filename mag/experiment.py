@@ -9,7 +9,20 @@ class Experiment:
 
     def __init__(self, config=None, resume_from=None,
                  logfile_name="log", experiments_dir="./experiments"):
-            
+        """Create a new Experiment instance.
+
+        Args:
+            config: can be either a path to existing JSON file,
+                a dict, or an instance of mag.config.Config.
+            resume_from: an identifier (str) to resume from 
+                the past experiment. It is important to emphasize that
+                it should be indentifier of the experiment, not the full path.
+                Full path is then constucted as experiments_dir / resume_from
+            logfile_name: str, naming for log file. This can be useful to
+                separate logs for different runs on the same experiment
+            experiments_dir: str, a path where experiment will be saved
+        """
+
         self.experiments_dir = experiments_dir
         self.logfile_name = logfile_name
 

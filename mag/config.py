@@ -5,6 +5,10 @@ from collections import OrderedDict
 
 
 class Config:
+    """Config is a recursive structure that resembles JSON or nested
+    dictionary, but where attributes can be accessed directly by
+    repeatition of `.` operator.
+    """
 
     @classmethod
     def from_json(cls, filepath):
@@ -57,7 +61,16 @@ class Config:
         return dict_config
 
     def as_flat_dict(self):
-        """Returns an OrderedDict with mapping (full_parameter_name -> attr)"""
+        """Returns an OrderedDict with mapping (full_parameter_name -> attr)
+        
+        Example:
+
+        >>> config = dict(a=10, b=dict(c=20))
+        >>> config = Config.from_dict(config)
+        >>> config.as_flat_dict()
+        OrderedDict([('a', 10), ('b.c', 20)])
+        
+        """
 
         parameters = OrderedDict()
 
@@ -84,6 +97,18 @@ class Config:
 
     @property
     def identifier(self):
+        """Maps config parameters into a single string that shortly
+        summarrizes the content of config`s fields. Fields a sorted
+        to provide deterministic output.
+        
+        Example:
+
+        >>> config = dict(a=10, b=dict(c=20))
+        >>> config = Config.from_dict(config)
+        >>> config.identifier
+        '10|20'
+        
+        """
 
         parameters = self.as_flat_dict()
 
