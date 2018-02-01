@@ -16,8 +16,8 @@ class Experiment:
         if config is None and resume_from is None:
             raise ValueError(
                 "If `config` argument was not passed explicitly, "
-                "path to existing experiment directory should be "
-                "specified by `resume_from` argument."
+                "path to existing experiment directory indentifier "
+                "should be specified by `resume_from` argument."
             )
 
         elif config is not None and resume_from is None:
@@ -26,17 +26,22 @@ class Experiment:
                 self.config = Config.from_json(config)
             elif isinstance(config, dict):
                 self.config = Config.from_dict(config)
-            else:
+            elif isinstance(config, Config):
                 self.config = config
+            else:
+                raise ValueError(
+                    "`config` should be either a path to JSON file "
+                    "a dictonary or an instance of mag.config.Config"
+                )
 
             if os.path.isdir(self.experiment_dir):
                 raise ValueError(
                     "Experiment with identifier {identifier} "
                     "already exists. Set `resume_from` to the corresponding "
-                    "directory ({directory}) or delete it manually and then "
-                    "rerun the code.".format(
+                    "identifier (directory name) {directory} or delete it "
+                    "manually and then rerun the code.".format(
                         identifier=self.config.identifier,
-                        directory=self.experiment_dir
+                        directory=self.config.identifier
                     )
                 )
 

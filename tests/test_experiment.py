@@ -68,6 +68,8 @@ def test_experiment_restoration(nested_dict_config, tmpdir):
         experiments_dir=experiments_dir
     )
 
+    assert experiment.config.to_dict() == nested_dict_config
+
 
 def test_experiment_logging(nested_dict_config, tmpdir):
 
