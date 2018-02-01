@@ -46,6 +46,29 @@ def test_experiment_initialization(nested_dict_config, tmpdir):
     assert config.to_dict() == nested_dict_config
 
 
+def test_experiment_restoration(nested_dict_config, tmpdir):
+
+    experiments_dir = tmpdir.join("experiments").strpath
+
+    # create an experiment
+    experiment = Experiment(
+        nested_dict_config, experiments_dir=experiments_dir
+    )
+
+    with pytest.raises(ValueError):
+        # since the experiment with the same identifier has been
+        # already created, experiment raises an error
+        experiment = Experiment(
+           nested_dict_config, experiments_dir=experiments_dir
+        )
+
+    # test restoration
+    experiment = Experiment(
+        resume_from=experiment.config.identifier,
+        experiments_dir=experiments_dir
+    )
+
+
 def test_experiment_logging(nested_dict_config, tmpdir):
 
     experiments_dir = tmpdir.join("experiments").strpath
@@ -67,7 +90,7 @@ def test_experiment_logging(nested_dict_config, tmpdir):
         assert f.read().strip() == "test"
 
 
-def test_experiment_save_commit_hash(nested_dict_config, tmpdir):
+def test_experiment_commit_hash_saving(nested_dict_config, tmpdir):
 
     experiments_dir = tmpdir.join("experiments").strpath
 
