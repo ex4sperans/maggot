@@ -29,10 +29,15 @@ class Experiment:
         self.config.to_json(self.config_file)
 
     def _save_git_commit_hash(self):
-        label = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
+        try:
+            label = subprocess.check_output(["git", "rev-parse", "HEAD"])
+        except subprocess.CalledProcessError:
+            # skip this step if current directory is
+            # not a git repository
+            return
 
         with open(self.git_hash_file, "w") as f:
-            f.write(label.decode())
+            f.write(label.strip().decode())
     
     @property
     def experiment_dir(self):

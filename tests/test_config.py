@@ -95,4 +95,5 @@ def test_config_indentifier(nested_dict_config):
 
     # identifier should be sorted as follows:
     # a, c.a, c.b, c.c
+    # _b is ignored as it starts from underscore
     assert config.identifier == "10|10|1x2x3|a"
