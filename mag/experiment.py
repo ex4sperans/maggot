@@ -4,7 +4,7 @@ import shutil
 from mag.config import Config
 
 
-class Runner:
+class Experiment:
 
     def __init__(self, config, experiments_dir="./experiments"):
 

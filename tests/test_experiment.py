@@ -4,7 +4,7 @@ import json
 import pytest
 
 
-from mag.runner import Runner
+from mag.experiment import Experiment
 from mag.config import Config
 
 
@@ -32,14 +32,14 @@ def nested_dict_config(simple_dict_config):
     return config
 
 
-def test_runner_initialization(nested_dict_config, tmpdir):
+def test_experiment_initialization(nested_dict_config, tmpdir):
 
     experiments_dir = tmpdir.join("experiments").strpath
 
-    runner = Runner(nested_dict_config, experiments_dir=experiments_dir)
+    experiment = Experiment(nested_dict_config, experiments_dir=experiments_dir)
 
     config = Config.from_json(os.path.join(
-        experiments_dir, runner.config.identifier, "config.json")
+        experiments_dir, experiment.config.identifier, "config.json")
     )
 
     assert config.to_dict() == nested_dict_config
