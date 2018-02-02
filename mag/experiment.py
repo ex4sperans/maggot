@@ -115,7 +115,7 @@ class Experiment:
         return os.path.join(self.experiment_dir, "commit_hash")
 
     def __enter__(self):
-        self.tee = Tee(self.log_file, "w")
+        self.tee = Tee(self.log_file, "a+")
         return self
 
     def __exit__(self, *args):
@@ -134,6 +134,7 @@ class Tee:
 
     def _log_time(self):
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.file.write("\n")
         self.file.write(current_time)
         self.file.write("\n\n")
 
