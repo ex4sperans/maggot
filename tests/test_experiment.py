@@ -83,13 +83,13 @@ def test_experiment_logging(nested_dict_config, tmpdir):
         print("test")
 
     with open(experiment.log_file, "r") as f:
-        assert f.read().strip() == "test"
+        assert f.readlines()[-1].strip() == "test"
 
     print("test2")
     # check that nothing is logged when print is called
     # outside with block
     with open(experiment.log_file, "r") as f:
-        assert f.read().strip() == "test"
+        assert f.readlines()[-1].strip() == "test"
 
 
 def test_experiment_commit_hash_saving(nested_dict_config, tmpdir):

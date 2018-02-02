@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import datetime
 
 from mag.config import Config
 
@@ -17,7 +18,7 @@ class Experiment:
             resume_from: an identifier (str) to resume from 
                 the past experiment. It is important to emphasize that
                 it should be indentifier of the experiment, not the full path.
-                Full path is then constucted as experiments_dir / resume_from
+                Full path is then constructed as experiments_dir / resume_from
             logfile_name: str, naming for log file. This can be useful to
                 separate logs for different runs on the same experiment
             experiments_dir: str, a path where experiment will be saved
@@ -29,7 +30,7 @@ class Experiment:
         if config is None and resume_from is None:
             raise ValueError(
                 "If `config` argument was not passed explicitly, "
-                "path to existing experiment directory indentifier "
+                "indentifier of existing experiment "
                 "should be specified by `resume_from` argument."
             )
 
@@ -58,7 +59,7 @@ class Experiment:
                     )
                 )
 
-            self._makedir() 
+            self._makedir()
             self._save_config()
             self._save_git_commit_hash()
 
@@ -85,7 +86,10 @@ class Experiment:
 
     def _save_git_commit_hash(self):
         try:
-            label = subprocess.check_output(["git", "rev-parse", "HEAD"])
+            label = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                stderr=subprocess.PIPE
+            )
         except subprocess.CalledProcessError:
             # skip this step if current directory is
             # not a git repository
@@ -126,6 +130,13 @@ class Tee:
         self.stdout = sys.stdout
         sys.stdout = self
 
+        self._log_time()
+
+    def _log_time(self):
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.file.write(current_time)
+        self.file.write("\n\n")
+
     def close(self, *args):
         sys.stdout = self.stdout
         self.file.close()
@@ -133,6 +144,6 @@ class Tee:
     def write(self, data):
         self.file.write(data)
         self.stdout.write(data)
-    
+
     def flush(self):
         self.file.flush()
