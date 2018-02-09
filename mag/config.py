@@ -117,6 +117,10 @@ class Config:
             *prefix, base = name.split(".")
             return base
 
+        def is_descriptive(key):
+            *prefix, base = key.split(".")
+            return not base.startswith("_")
+
         # convert values to strings
         parameters = OrderedDict((k, value_to_string(v, k))
                                  for k, v in parameters.items())
@@ -124,7 +128,7 @@ class Config:
         # by convention, they are considered as `non-descriptive`
         # i.e. not used in the identifier
         parameters = OrderedDict((k, v) for k, v in parameters.items()
-                                    if not k.startswith("_"))
+                                    if is_descriptive(k))
 
         return "|".join(parameters.values())
 
