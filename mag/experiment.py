@@ -114,6 +114,11 @@ class Experiment:
     def git_hash_file(self):
         return os.path.join(self.experiment_dir, "commit_hash")
 
+    def register_directory(self, dirname):
+        directory = os.path.join(self.experiment_dir, dirname)
+        os.makedirs(directory)
+        setattr(self, dirname, directory)
+
     def __enter__(self):
         self.tee = Tee(self.log_file, "a+")
         return self

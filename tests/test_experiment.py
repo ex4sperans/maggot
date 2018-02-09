@@ -100,6 +100,23 @@ def test_experiment_commit_hash_saving(nested_dict_config, tmpdir):
         nested_dict_config, experiments_dir=experiments_dir
     )
 
-    assert os.path.isfile(os.path.join(
-        experiment.experiment_dir, "commit_hash")
+    assert os.path.isfile(
+        os.path.join(
+            experiment.experiment_dir, "commit_hash"
+        )
     )
+
+
+def test_experiment_register_directory(nested_dict_config, tmpdir):
+
+    experiments_dir = tmpdir.join("experiments").strpath
+
+    experiment = Experiment(
+        nested_dict_config, experiments_dir=experiments_dir
+    )
+
+    experiment.register_directory("temp")
+    target = os.path.join(experiment.experiment_dir, "temp")
+
+    assert os.path.isdir(target)
+    assert experiment.temp == target
