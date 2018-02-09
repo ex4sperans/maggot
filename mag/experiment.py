@@ -68,6 +68,7 @@ class Experiment:
             self.config = Config.from_json(
                 os.path.join(experiments_dir, resume_from, "config.json")
             )
+            self._register_existing_directories()
 
         elif config is not None and resume_from is not None:
 
@@ -116,8 +117,14 @@ class Experiment:
 
     def register_directory(self, dirname):
         directory = os.path.join(self.experiment_dir, dirname)
-        os.makedirs(directory)
+        os.makedirs(directory, exist_ok=True)
         setattr(self, dirname, directory)
+
+    def _register_existing_directories(self):
+        for item in os.listdir(self.experiment_dir):
+            fullpath = os.path.join(self.experiment_dir, item)
+            if os.path.isdir(fullpath):
+                setattr(self, item, fullpath)
 
     def __enter__(self):
         self.tee = Tee(self.log_file, "a+")

@@ -54,6 +54,7 @@ def test_experiment_restoration(nested_dict_config, tmpdir):
     experiment = Experiment(
         nested_dict_config, experiments_dir=experiments_dir
     )
+    experiment.register_directory("temp")
 
     with pytest.raises(ValueError):
         # since the experiment with the same identifier has been
@@ -69,6 +70,8 @@ def test_experiment_restoration(nested_dict_config, tmpdir):
     )
 
     assert experiment.config.to_dict() == nested_dict_config
+    # test that `temp` is registered after restoration
+    assert os.path.isdir(experiment.temp)
 
 
 def test_experiment_logging(nested_dict_config, tmpdir):
