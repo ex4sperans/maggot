@@ -36,4 +36,4 @@ Various other options are available and will be documented soon.
 
 **Installation**
 
-To install, clone the repository and then use ```pip install .``` to install it to the current environment. The repository will be added to PyPI soon to simplify the installation.
+To install, clone the repository and then use ```pip install .``` or run ```pip install git+https://github.com/ex4sperans/mag.git``` to install directly from GitHub. The repository will be added to PyPI soon to simplify the installation.
