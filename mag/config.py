@@ -132,6 +132,9 @@ class Config:
 
         return "|".join(parameters.values())
 
+    def __repr__(self):
+        return json.dumps(self.to_dict(), indent=4)
+
 
 def value_to_string(value, name):
     """Translates values (e.g. lists, ints, booleans) to strings"""
