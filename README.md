@@ -29,7 +29,7 @@ experiments
     └── log
 ```
 
-Where ```10|0.01``` is an identifier of the current experiment (which is inferred from the defined config) as log
+Where ```10|0.01``` is an identifier of the current experiment (which is inferred from the defined config) and log
 is a log file (in the basic case, it is just a duplicate of the stdout).
 
 Various other options are available and will be documented soon.

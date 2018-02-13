@@ -70,6 +70,7 @@ class MnistClassifier:
             net = images
             net = tf.layers.dense(
                 net, self.config.network.hidden_units,
+                # dynamically get the activation from config
                 activation=getattr(tf.nn, self.config.network.activation)
             )
             net = tf.layers.dense(
@@ -106,11 +107,11 @@ class MnistClassifier:
 
     def _create_summaries(self, loss):
         with tf.variable_scope("summaries"):
-
+            # streaming mean helps to compute the mean across
+            # all samples in the dataset
             streaming_loss, self.update_loss = tf.metrics.mean(
                 loss
             )
-
             cross_entropy = tf.summary.scalar(
                 "loss",
                 streaming_loss
@@ -120,10 +121,15 @@ class MnistClassifier:
 
     def _create_initializers(self):
         self.variables_initializer = tf.global_variables_initializer()
+        # streaming mean requires initializing of local variables
         self.local_variables_initializer = tf.local_variables_initializer()
 
     def _create_summary_writers(self):
 
+        # Experiment allows creating directories in experiment
+        # directory by calling register_directory(directory_name).
+        # After this call experiment has attribute `directory_name`
+        # which is a path to the specified directory.
         self.experiment.register_directory("summaries")
 
         train_summary_path = os.path.join(self.experiment.summaries, "train")
@@ -162,6 +168,8 @@ class MnistClassifier:
             except tf.errors.OutOfRangeError:
                 break
 
+        # since streaming mean is used
+        # it's nessecary to save summary only in the end of epoch
         self.train_writer.add_summary(
             sess.run(self.summary), sess.run(self.global_step)
         )
@@ -192,7 +200,6 @@ class MnistClassifier:
             for epoch in range(1, self.config.train.n_epochs + 1):
                 self._train_epoch(sess)
                 self._validation(sess)
-
                 self.save(sess)
 
     def _setup_session(self):
@@ -201,25 +208,25 @@ class MnistClassifier:
         return tf.Session(graph=self.graph, config=config)
 
 
-with Experiment(
-    {
-        "_n_classes": 10,
-        "network": {
-            "hidden_units": 128,
-            "activation": "relu"
-        },
-        "train": {
-            "batch_size": 64,
-            "n_epochs": 10,
-            "_buffer_size": 128,
-            "learning_rate": 1e-3,
-            "momentum": 0.9
-        },
-        "validation": {
-            "_batch_size": 128
-        }
+with Experiment({
+    "_n_classes": 10,
+    "network": {
+        "hidden_units": 128,
+        "activation": "relu"
+    },
+    "train": {
+        "batch_size": 64,
+        "n_epochs": 10,
+        "_buffer_size": 128,
+        "learning_rate": 1e-3,
+        "momentum": 0.9
+    },
+    "validation": {
+        "_batch_size": 128
     }
-) as experiment:
+}) as experiment:
 
     classifier = MnistClassifier(mnist, experiment)
     classifier.fit()
+
+    print("Finished!")    # will be logged to a file
