@@ -95,6 +95,36 @@ class Config:
 
         return parameters
 
+    @classmethod
+    def from_flat_dict(cls, flat_dict):
+        """Returns Config instance from flat dictionary.
+        
+        Example:
+
+        >>> config = {"a.a": 10, "b": "b"}
+        >>> config = Config.from_flat_dict(config)
+        >>> config.as_flat_dict()
+        OrderedDict([('b', 'b'), ('a.a', 10)])
+        
+        """
+
+        config = dict()
+
+        def _fill(config, flat):
+
+            for name, value in flat.items():
+                if "." in name:
+                    prefix, *suffix = name.split(".")
+                    if prefix not in config:
+                        config[prefix] = dict()
+                    _fill(config[prefix], {".".join(suffix): value})
+                else:
+                    config[name] = value
+
+        _fill(config, flat_dict)
+                     
+        return cls.from_dict(config)
+
     @property
     def identifier(self):
         """Maps config parameters into a single string that shortly

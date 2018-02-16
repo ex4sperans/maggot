@@ -62,6 +62,17 @@ def test_config_as_flat_dict(nested_dict_config):
     assert flat_dict["c.b"] == [1, 2, 3]
 
 
+def test_config_from_flat_dict():
+
+    config = {"a.a": 10, "b": "b", "a.b": [1, 2, 3], "a.c.c": 1}
+    config = Config.from_flat_dict(config)
+
+    assert config.a.a == 10
+    assert config.b == "b"
+    assert config.a.b == [1, 2, 3]
+    assert config.a.c.c == 1
+
+
 def test_config_from_json(nested_dict_config, tmpdir):
 
     filepath = tmpdir.join("nested_dict_config.json").strpath

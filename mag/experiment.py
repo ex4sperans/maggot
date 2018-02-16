@@ -9,7 +9,8 @@ from mag.config import Config
 class Experiment:
 
     def __init__(self, config=None, resume_from=None,
-                 logfile_name="log", experiments_dir="./experiments"):
+                 logfile_name="log", experiments_dir="./experiments",
+                 args=None):
         """Create a new Experiment instance.
 
         Args:
@@ -22,6 +23,8 @@ class Experiment:
             logfile_name: str, naming for log file. This can be useful to
                 separate logs for different runs on the same experiment
             experiments_dir: str, a path where experiment will be saved
+            args: argparse unknown arguments. Used to override the parameters
+                in the given config.
         """
 
         self.experiments_dir = experiments_dir
@@ -48,6 +51,9 @@ class Experiment:
                     "a dictonary or an instance of mag.config.Config"
                 )
 
+            if args is not None:
+                self._override_config_params(self.config, args)
+
             if os.path.isdir(self.experiment_dir):
                 raise ValueError(
                     "Experiment with identifier {identifier} "
@@ -64,6 +70,12 @@ class Experiment:
             self._save_git_commit_hash()
 
         elif resume_from is not None and config is None:
+
+            if args is not None:
+                raise ValueError(
+                    "Parameter overriding is not supported "
+                    "when the experiment is resumed."
+                )
 
             self.config = Config.from_json(
                 os.path.join(experiments_dir, resume_from, "config.json")
@@ -125,6 +137,9 @@ class Experiment:
             fullpath = os.path.join(self.experiment_dir, item)
             if os.path.isdir(fullpath):
                 setattr(self, item, fullpath)
+
+    def _override_config_params(self, config, args):
+        return config
 
     def __enter__(self):
         self.tee = Tee(self.log_file, "a+")
