@@ -124,21 +124,3 @@ def test_experiment_register_directory(nested_dict_config, tmpdir):
 
     assert os.path.isdir(target)
     assert experiment.temp == target
-
-
-def test_experiment_override_params(nested_dict_config, tmpdir):
-
-    experiments_dir = tmpdir.join("experiments").strpath
-
-    args = ["--n", "30", "--a=15", "c.a", "10"]
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--n", type=int)
-    args, rest = parser.parse_known_args(args)
-    
-
-    experiment = Experiment(
-        nested_dict_config, experiments_dir=experiments_dir, args=rest
-    )
-
-    assert experiment.config.a == 15
-    assert experiment.config.c.a == 10

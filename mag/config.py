@@ -98,14 +98,14 @@ class Config:
     @classmethod
     def from_flat_dict(cls, flat_dict):
         """Returns Config instance from flat dictionary.
-        
+
         Example:
 
         >>> config = {"a.a": 10, "b": "b"}
         >>> config = Config.from_flat_dict(config)
         >>> config.as_flat_dict()
-        OrderedDict([('b', 'b'), ('a.a', 10)])
-        
+        OrderedDict([('a.a', 10), ('b', 'b')])
+
         """
 
         config = dict()
