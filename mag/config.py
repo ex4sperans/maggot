@@ -62,14 +62,14 @@ class Config:
 
     def as_flat_dict(self):
         """Returns an OrderedDict with mapping (full_parameter_name -> attr)
-        
+
         Example:
 
         >>> config = dict(a=10, b=dict(c=20))
         >>> config = Config.from_dict(config)
         >>> config.as_flat_dict()
         OrderedDict([('a', 10), ('b.c', 20)])
-        
+
         """
 
         parameters = OrderedDict()
@@ -122,7 +122,7 @@ class Config:
                     config[name] = value
 
         _fill(config, flat_dict)
-                     
+
         return cls.from_dict(config)
 
     @property
@@ -130,14 +130,14 @@ class Config:
         """Maps config parameters into a single string that shortly
         summarrizes the content of config`s fields. Fields a sorted
         to provide deterministic output.
-        
+
         Example:
 
         >>> config = dict(a=10, b=dict(c=20))
         >>> config = Config.from_dict(config)
         >>> config.identifier
         '10|20'
-        
+
         """
 
         parameters = self.as_flat_dict()
@@ -169,9 +169,13 @@ class Config:
 def value_to_string(value, name):
     """Translates values (e.g. lists, ints, booleans) to strings"""
 
+    def last(name):
+        *prefix, base = name.split(".")
+        return base
+
     if isinstance(value, list):
         return "x".join(map(str, value))
     if isinstance(value, bool):
-        return name if value else "no_" + name
+        return last(name) if value else "no_" + last(name)
     else:
         return str(value)

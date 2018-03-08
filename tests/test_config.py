@@ -108,3 +108,14 @@ def test_config_indentifier(nested_dict_config):
     # a, c.a, c.b, c.c
     # _b is ignored as it starts from underscore
     assert config.identifier == "10|10|1x2x3|a"
+
+
+def test_config_with_boolean_field(nested_dict_config):
+
+    config = Config.from_dict(nested_dict_config)
+    config.d = Config.from_dict({"d": False})
+
+    # identifier should be sorted as follows:
+    # a, c.a, c.b, c.c
+    # _b is ignored as it starts from underscore
+    assert config.identifier == "10|10|1x2x3|a|no_d"
