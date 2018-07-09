@@ -217,6 +217,8 @@ with Experiment({
     "train": {
         "batch_size": 64,
         "n_epochs": 10,
+        # to exclude the parameter from the identifier,
+        # start its name from the underscore
         "_buffer_size": 128,
         "learning_rate": 1e-3,
         "momentum": 0.9
@@ -230,3 +232,15 @@ with Experiment({
     classifier.fit()
 
     print("Finished!")    # will be logged to a file
+
+
+# now, restore the experiment
+# relu|128|64|0.001|0.9|10 is a result of calling
+# experiment.config.identifier which shortly summarizes
+# the parameters listed in config
+with Experiment(resume_from="relu|128|64|0.001|0.9|10") as experiment:
+    classifier = MnistClassifier(mnist, experiment)
+    classifier.sess = classifier._setup_session()
+    classifier.load(classifier.sess)
+
+    # now the model was successfully restored and ready for usage!
