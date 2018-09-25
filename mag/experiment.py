@@ -15,7 +15,7 @@ class Experiment:
         Args:
             config: can be either a path to existing JSON file,
                 a dict, or an instance of mag.config.Config.
-            resume_from: an identifier (str) to resume from 
+            resume_from: an identifier (str) to resume from
                 the past experiment. It is important to emphasize that
                 it should be indentifier of the experiment, not the full path.
                 Full path is then constructed as experiments_dir / resume_from
@@ -78,7 +78,7 @@ class Experiment:
                 "`config`) or resume from the existing experiment "
                 "(by passing only `resume_from`)"
             )
-            
+
     def _makedir(self):
         os.makedirs(self.experiment_dir, exist_ok=False)
 
@@ -98,7 +98,7 @@ class Experiment:
 
         with open(self.git_hash_file, "w") as f:
             f.write(label.strip().decode())
-    
+
     @property
     def experiment_dir(self):
         return os.path.join(self.experiments_dir, self.config.identifier)
@@ -115,6 +115,10 @@ class Experiment:
     def git_hash_file(self):
         return os.path.join(self.experiment_dir, "commit_hash")
 
+    @property
+    def results_file(self):
+        return os.path.join(self.experiment_dir, "results.json")
+
     def register_directory(self, dirname):
         directory = os.path.join(self.experiment_dir, dirname)
         os.makedirs(directory, exist_ok=True)
@@ -125,6 +129,18 @@ class Experiment:
             fullpath = os.path.join(self.experiment_dir, item)
             if os.path.isdir(fullpath):
                 setattr(self, item, fullpath)
+
+    def register_result(self, name, value):
+        if os.path.exists(self.results_file):
+            results = Config.from_json(self.results_file).as_flat_dict()
+        else:
+            results = dict()
+        results[name] = value
+        Config.from_flat_dict(results).to_json(self.results_file)
+
+    @property
+    def results(self):
+        return Config.from_json(self.results_file)
 
     def __enter__(self):
         self.tee = Tee(self.log_file, "a+")

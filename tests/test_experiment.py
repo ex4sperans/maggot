@@ -124,3 +124,26 @@ def test_experiment_register_directory(nested_dict_config, tmpdir):
 
     assert os.path.isdir(target)
     assert experiment.temp == target
+
+
+def test_experiment_register_result(simple_dict_config, tmpdir):
+
+    experiments_dir = tmpdir.join("experiments").strpath
+
+    experiment = Experiment(
+        simple_dict_config, experiments_dir=experiments_dir
+    )
+
+    experiment.register_result("fold1.accuracy", 0.97)
+    experiment.register_result("fold2.accuracy", 0.99)
+    experiment.register_result("fold1.loss", 0.03)
+    experiment.register_result("fold2.loss", 0.01)
+    experiment.register_result("overall_accuracy", 0.98)
+
+    results = experiment.results.to_dict()
+
+    assert results["fold1"]["accuracy"] == 0.97
+    assert results["fold2"]["accuracy"] == 0.99
+    assert results["fold1"]["loss"] == 0.03
+    assert results["fold2"]["loss"] == 0.01
+    assert results["overall_accuracy"] == 0.98
