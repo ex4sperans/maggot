@@ -1,5 +1,6 @@
 attrs==17.4.0
 pluggy==0.6.0
+pandas==0.23.4
 py==1.5.2
 pytest==3.4.0
 six==1.11.0
