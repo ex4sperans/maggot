@@ -9,7 +9,8 @@ from mag.config import Config
 class Experiment:
 
     def __init__(self, config=None, resume_from=None,
-                 logfile_name="log", experiments_dir="./experiments"):
+                 logfile_name="log", experiments_dir="./experiments",
+                 implicit_resuming=False):
         """Create a new Experiment instance.
 
         Args:
@@ -22,6 +23,8 @@ class Experiment:
             logfile_name: str, naming for log file. This can be useful to
                 separate logs for different runs on the same experiment
             experiments_dir: str, a path where experiment will be saved
+            implicit_resuming: bool, whether to allow resuming
+                even if experiment already exists
         """
 
         self.experiments_dir = experiments_dir
@@ -49,19 +52,20 @@ class Experiment:
                 )
 
             if os.path.isdir(self.experiment_dir):
-                raise ValueError(
-                    "Experiment with identifier {identifier} "
-                    "already exists. Set `resume_from` to the corresponding "
-                    "identifier (directory name) {directory} or delete it "
-                    "manually and then rerun the code.".format(
-                        identifier=self.config.identifier,
-                        directory=self.config.identifier
+                if not implicit_resuming:
+                    raise ValueError(
+                        "Experiment with identifier {identifier} "
+                        "already exists. Set `resume_from` to the corresponding "
+                        "identifier (directory name) {directory} or delete it "
+                        "manually and then rerun the code.".format(
+                            identifier=self.config.identifier,
+                            directory=self.config.identifier
+                        )
                     )
-                )
-
-            self._makedir()
-            self._save_config()
-            self._save_git_commit_hash()
+            else:
+                self._makedir()
+                self._save_config()
+                self._save_git_commit_hash()
 
         elif resume_from is not None and config is None:
 
