@@ -7,6 +7,8 @@ import pandas as pd
 from mag.config import Config
 from mag.utils import bold, green, red, blue
 
+pd.set_option("display.max_colwidth", 500)
+
 
 def collect_results(directory, metrics):
 
