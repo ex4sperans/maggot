@@ -66,6 +66,7 @@ class Experiment:
                 self._makedir()
                 self._save_config()
                 self._save_git_commit_hash()
+                self._save_command()
 
         elif resume_from is not None and config is None:
 
@@ -122,6 +123,14 @@ class Experiment:
     @property
     def results_file(self):
         return os.path.join(self.experiment_dir, "results.json")
+
+    @property
+    def command_file(self):
+        return os.path.join(self.experiment_dir, "command")
+
+    def _save_command(self):
+        with open(self.command_file, "w") as f:
+            f.write(" ".join(sys.argv) + "\n")
 
     def register_directory(self, dirname):
         directory = os.path.join(self.experiment_dir, dirname)
