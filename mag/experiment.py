@@ -47,8 +47,8 @@ class Experiment:
                 self.config = config
             else:
                 raise ValueError(
-                    "`config` should be either a path to JSON file "
-                    "a dictonary or an instance of mag.config.Config"
+                    "`config` should be either a path to JSON file, "
+                    "a dictonary, or an instance of mag.config.Config"
                 )
 
             if os.path.isdir(self.experiment_dir):
