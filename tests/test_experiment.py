@@ -64,10 +64,19 @@ def test_experiment_restoration(nested_dict_config, tmpdir):
            nested_dict_config, experiments_dir=experiments_dir
         )
 
-    # test restoration
+    # test restoration from identifier
     experiment = Experiment(
         resume_from=experiment.config.identifier,
         experiments_dir=experiments_dir
+    )
+
+    assert experiment.config.to_dict() == nested_dict_config
+    # test that `temp` is registered after restoration
+    assert os.path.isdir(experiment.temp)
+
+    # test restoration from directory
+    experiment = Experiment(
+        resume_from=os.path.join(experiments_dir, experiment.config.identifier)
     )
 
     assert experiment.config.to_dict() == nested_dict_config

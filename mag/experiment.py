@@ -4,6 +4,23 @@ import subprocess
 import datetime
 
 from mag.config import Config
+from mag.utils import red
+
+
+def is_experiment(directory):
+
+    exists = os.path.isdir(directory)
+    if not exists:
+        return False
+
+    has_command = os.path.isfile(os.path.join(directory, "command"))
+    has_config = os.path.isfile(os.path.join(directory, "config.json"))
+
+    return has_command and has_config
+
+
+def is_same_directory(first, second):
+    return os.path.realpath(first) == os.path.realpath(second)
 
 
 class Experiment:
@@ -16,10 +33,10 @@ class Experiment:
         Args:
             config: can be either a path to existing JSON file,
                 a dict, or an instance of mag.config.Config.
-            resume_from: an identifier (str) to resume from
-                the past experiment. It is important to emphasize that
-                it should be indentifier of the experiment, not the full path.
-                Full path is then constructed as experiments_dir / resume_from
+            resume_from: an identifier (str) of an existing experiment or direct
+                path to an existing experiment. In the case when experiment
+                identifier is provided, experiment directory is assumed to be
+                located at experiments_dir / identifier.
             logfile_name: str, naming for log file. This can be useful to
                 separate logs for different runs on the same experiment
             experiments_dir: str, a path where experiment will be saved
@@ -70,9 +87,19 @@ class Experiment:
 
         elif resume_from is not None and config is None:
 
+            if is_experiment(resume_from):
+                experiment_directory = resume_from
+                _candidate_experiments_dir = self._infer_experiments_dir(
+                    experiment_directory)
+
+                self.experiments_dir = _candidate_experiments_dir
+
+            else:
+                experiment_directory = os.path.join(
+                    experiments_dir, resume_from)
+
             self.config = Config.from_json(
-                os.path.join(experiments_dir, resume_from, "config.json")
-            )
+                os.path.join(experiment_directory, "config.json"))
             self._register_existing_directories()
 
         elif config is not None and resume_from is not None:
@@ -103,6 +130,9 @@ class Experiment:
 
         with open(self.git_hash_file, "w") as f:
             f.write(label.strip().decode())
+
+    def _infer_experiments_dir(self, experiment_directory):
+        return os.path.dirname(experiment_directory)
 
     @property
     def experiment_dir(self):
