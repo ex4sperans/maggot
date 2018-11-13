@@ -3,6 +3,8 @@ import os
 import json
 from collections import OrderedDict
 
+from mag import get_current_separator
+
 
 class Config:
     """Config is a recursive structure that resembles JSON or nested
@@ -163,7 +165,7 @@ class Config:
         parameters = OrderedDict((k, v) for k, v in parameters.items()
                                     if is_descriptive(k))
 
-        return "|".join(parameters.values())
+        return get_current_separator().join(parameters.values())
 
     def __repr__(self):
         return json.dumps(self.to_dict(), indent=4)
