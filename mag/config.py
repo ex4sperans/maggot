@@ -32,8 +32,8 @@ class Config:
     def from_dict(cls, config):
         """Recursively create Config instance from dictionary"""
 
-        if len(config) == 0:
-            raise ValueError("Config is empty")
+        if not config:
+            raise ValueError("Config is empty.")
 
         _config = cls()
 
