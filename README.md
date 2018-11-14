@@ -6,7 +6,7 @@ Main issues **mag** (at least partially) solves:
 * Assists reproducibility. Ever experienced situation when results you got a month ago with an "old" model are no longer repeatable? Even if you are using git, you probably used some command line arguments that are now lost somewhere is bash history... **mag** stores all command line parameters in a file and duplicates stdout you see during the experiment to another file. Additionaly, it saves exact git commit hash so you can easily checkout to it later and run the same code with the same parameters.
 * Restoring a model is now really painless! Since **mag** saves all the parameters you used to run the experiment, all you need to restore a model is to provide a path to a saved experiment.
 
-Let's consider a toy example and train an SVM on Iris dataset with.
+Let's consider a toy example and train an SVM on Iris dataset.
 
 Import required packages and define command line arguments:
 
@@ -38,7 +38,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 ```
-Now we need to define configuration object for out experiment:
+Define configuration object for out experiment:
 
 ``` python
 
@@ -54,7 +54,7 @@ svm_config = {
 }
 ```
 
-The `random_seed` parameter is not really important for analyzing the experiment, so we included an underscore before its name in config. This tells **mag** to ignore it for experiment's identifier (short name).
+The `random_seed` parameter is not really important for analyzing and comparing different experiments, so we included an underscore before its name in config. This tells **mag** to ignore it for experiment's identifier (short name).
 
 Lets create an experiment object!
 
