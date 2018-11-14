@@ -132,6 +132,9 @@ class Experiment:
             f.write(label.strip().decode())
 
     def _infer_experiments_dir(self, experiment_directory):
+        while experiment_directory.endswith("/"):
+            # remove trailing slashes
+            experiment_directory = experiment_directory[:-1]
         return os.path.dirname(experiment_directory)
 
     @property
