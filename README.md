@@ -150,7 +150,7 @@ See how directory structure changed:
 If we want to restore the experiment we can easily do:
 
 ```python
-with Experiment(resume_from="experiment/5|1.0|0.01") as experiment:
+with Experiment(resume_from="experiments/5|1.0|0.01") as experiment:
     ...
 ```
 
