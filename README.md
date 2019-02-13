@@ -38,7 +38,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 ```
-Define configuration object for out experiment:
+Define a configuration object for the experiment:
 
 ``` python
 
