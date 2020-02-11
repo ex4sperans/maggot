@@ -4,7 +4,12 @@ import json
 import pytest
 
 from mag.config import Config
-from mag import use_custom_separator, use_default_separator, get_current_separator
+from mag import (
+    use_custom_separator,
+    use_default_separator,
+    get_current_separator,
+    DEFAULT_SEPARATOR
+)
 
 
 @pytest.fixture
@@ -108,7 +113,7 @@ def test_config_indentifier(nested_dict_config):
     # identifier should be sorted as follows:
     # a, c.a, c.b, c.c
     # _b is ignored as it starts from underscore
-    assert config.identifier == "10|10|1x2x3|a"
+    assert config.identifier == DEFAULT_SEPARATOR.join("10 10 1x2x3 a".split())
 
 
 def test_config_with_boolean_field(nested_dict_config):
@@ -119,7 +124,7 @@ def test_config_with_boolean_field(nested_dict_config):
     # identifier should be sorted as follows:
     # a, c.a, c.b, c.c
     # _b is ignored as it starts from underscore
-    assert config.identifier == "10|10|1x2x3|a|no_d"
+    assert config.identifier == DEFAULT_SEPARATOR.join("10 10 1x2x3 a no_d".split())
 
 
 def test_custom_separator(nested_dict_config):
@@ -136,5 +141,5 @@ def test_custom_separator(nested_dict_config):
     config = Config.from_dict(nested_dict_config)
     config.d = Config.from_dict({"d": False})
 
-    assert config.identifier == "10|10|1x2x3|a|no_d"
+    assert config.identifier == DEFAULT_SEPARATOR.join("10 10 1x2x3 a no_d".split())
 
