@@ -65,7 +65,7 @@ experiment = Experiment(config=svm_config)
 From here you can reach the model identifier:
 
 ```
->>> experiment.identifier
+>>> experiment.config.identifier
 5-1.0-0.01
 ```
 
