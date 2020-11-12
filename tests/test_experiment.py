@@ -47,6 +47,20 @@ def test_experiment_initialization(nested_dict_config, tmpdir):
     assert config.to_dict() == nested_dict_config
 
 
+def test_experiment_initialization_with_custom_name(nested_dict_config, tmpdir):
+
+    experiments_dir = tmpdir.join("experiments").strpath
+
+    experiment = Experiment(
+        nested_dict_config,
+        experiments_dir=experiments_dir,
+        experiment_name="custom"
+    )
+
+    assert os.path.isdir(os.path.join(experiments_dir, "custom"))
+    assert os.path.isfile(os.path.join(experiments_dir, "custom", "config.json"))
+
+
 def test_experiment_restoration(nested_dict_config, tmpdir):
 
     experiments_dir = tmpdir.join("experiments").strpath

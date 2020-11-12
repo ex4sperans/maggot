@@ -27,7 +27,7 @@ class Experiment:
 
     def __init__(self, config=None, resume_from=None,
                  logfile_name="log", experiments_dir="./experiments",
-                 implicit_resuming=False):
+                 implicit_resuming=False, experiment_name=None):
         """Create a new Experiment instance.
 
         Args:
@@ -42,8 +42,12 @@ class Experiment:
             experiments_dir: str, a path where experiment will be saved
             implicit_resuming: bool, whether to allow resuming
                 even if experiment already exists
+            experiment_name: str
+                a custom experiment name that is used instead of one
+                generated from config parameters
         """
 
+        self._custom_experiment_name = experiment_name
         self.experiments_dir = experiments_dir
         self.logfile_name = logfile_name
 
@@ -139,7 +143,8 @@ class Experiment:
 
     @property
     def experiment_dir(self):
-        return os.path.join(self.experiments_dir, self.config.identifier)
+        experiment_name = self._custom_experiment_name or self.config.identifier
+        return os.path.join(self.experiments_dir, experiment_name)
 
     @property
     def config_file(self):
