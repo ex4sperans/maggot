@@ -14,3 +14,7 @@ def use_default_separator():
 
 def get_current_separator():
     return SEPARATOR
+
+
+from maggot.experiment import Experiment
+from maggot.config import Config

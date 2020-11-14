@@ -1,7 +1,7 @@
-from maggot.config import Config
+from maggot.containers import NestedContainer
 
 
-styles = Config.from_dict(
+styles = NestedContainer.from_dict(
     dict(
         reset="\033[0m",
         bold="\033[01m",

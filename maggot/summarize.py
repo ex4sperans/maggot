@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import pandas as pd
 
-from maggot.config import Config
+from maggot.containers import NestedContainer
 from maggot.utils import bold, green, red, blue
 
 pd.set_option("display.max_colwidth", 500)
@@ -23,7 +23,7 @@ def collect_results(directory, metrics):
     for experiment in experiments:
         results_file = os.path.join(directory, experiment, "results.json")
         if os.path.isfile(results_file):
-            result = Config.from_json(results_file)
+            result = NestedContainer.from_json(results_file)
             result = result.as_flat_dict()
             all_results["experiment"].append(experiment)
             for metric in metrics:
