@@ -9,4 +9,4 @@ import pytest
 sys.dont_write_bytecode = True
 
 # run pytest
-pytest.main(["-v", "mag/", "tests/"])
+pytest.main(["-v", "maggot/", "tests/"])

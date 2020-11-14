@@ -3,7 +3,7 @@ import os
 import json
 from collections import OrderedDict
 
-from mag import get_current_separator
+from maggot import get_current_separator
 
 
 class Config:
@@ -141,7 +141,7 @@ class Config:
         >>> config = dict(a=10, b=dict(c=20))
         >>> config = Config.from_dict(config)
         >>> config.identifier
-        '10|20'
+        '10-20'
 
         """
 

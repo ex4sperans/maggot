@@ -4,8 +4,8 @@ import argparse
 
 import pytest
 
-from mag.experiment import Experiment
-from mag.config import Config
+from maggot.experiment import Experiment
+from maggot.config import Config
 
 
 @pytest.fixture

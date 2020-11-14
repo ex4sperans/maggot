@@ -1,10 +1,10 @@
-**mag** is a very simple but useful library with primary goal to remove the need of custom experiment tracking approaches most people typically use. The focus is on reproducibility and removing boilerplate code.
+**maggot** is a very simple but useful library with primary goal to remove the need of custom experiment tracking approaches most people typically use. The focus is on reproducibility and removing boilerplate code.
 
-Main issues **mag** (at least partially) solves:
+Main issues **maggot** (at least partially) solves:
 
-* Removes the need of meditations on what is a proper name for the experiment. Say you are a machine learning researcher/engineer and you want to train a convolutional neural network with a particular set of parameters, say, 50 convolutional layers, dropout 0.5 and relu activations. You might want to create a separate directory for this experiment to store some checkpoints and summaries there. If you do not expect to have a lot of different models you can simply go off with something like "convnet50layers" or "convnet50relu". But if the number of experiments grows, you clearly need some more reliable and automated solution. **mag** offers such a solution, so any experiment you run will have a name derived from the parameters of your model. For the mentioned model it would be "50-relu-0.5".
-* Assists reproducibility. Ever experienced situation when results you got a month ago with an "old" model are no longer reproducible? Even if you are using git, you probably have used some command line arguments that are now lost somewhere in the bash history... **mag** stores all command line parameters in a file and duplicates the stdout to an another file. Additionaly, it saves exact git commit hash so you can easily checkout to it later and run the same code with the same parameters.
-* Restoring a model is now really painless! Since **mag** saves all the parameters you used to run the experiment, all you need to restore a model is to provide a path to a saved experiment.
+* Removes the need of meditations on what is a proper name for the experiment. Say you are a machine learning researcher/engineer and you want to train a convolutional neural network with a particular set of parameters, say, 50 convolutional layers, dropout 0.5 and relu activations. You might want to create a separate directory for this experiment to store some checkpoints and summaries there. If you do not expect to have a lot of different models you can simply go off with something like "convnet50layers" or "convnet50relu". But if the number of experiments grows, you clearly need some more reliable and automated solution. **maggot** offers such a solution, so any experiment you run will have a name derived from the parameters of your model. For the mentioned model it would be "50-relu-0.5".
+* Assists reproducibility. Ever experienced situation when results you got a month ago with an "old" model are no longer reproducible? Even if you are using git, you probably have used some command line arguments that are now lost somewhere in the bash history... **maggot** stores all command line parameters in a file and duplicates the stdout to an another file. Additionaly, it saves exact git commit hash so you can easily checkout to it later and run the same code with the same parameters.
+* Restoring a model is now really painless! Since **maggot** saves all the parameters you used to run the experiment, all you need to restore a model is to provide a path to a saved experiment.
 
 Let's consider a toy example and train an SVM on Iris dataset.
 
@@ -54,7 +54,7 @@ svm_config = {
 }
 ```
 
-The `random_seed` parameter is not really important for analyzing and comparing different experiments, so we included an underscore before its name in config. This tells **mag** to ignore it for experiment's identifier (short name).
+The `random_seed` parameter is not really important for analyzing and comparing different experiments, so we included an underscore before its name in config. This tells **maggot** to ignore it for experiment's identifier (short name).
 
 Lets create an experiment object!
 
@@ -160,17 +160,17 @@ Configuration file and other related stuff will be loaded automatically.
 We can easily run several experiments with different parameters:
 
 ```
-python ../mag/examples/iris_sklearn.py --C=10
-python ../mag/examples/iris_sklearn.py --C=10 --gamma=1
-python ../mag/examples/iris_sklearn.py --C=10 --gamma=0.1
-python ../mag/examples/iris_sklearn.py --C=0.001 --gamma=0.1
-python ../mag/examples/iris_sklearn.py --C=0.001 --gamma=10
+python ../maggot/examples/iris_sklearn.py --C=10
+python ../maggot/examples/iris_sklearn.py --C=10 --gamma=1
+python ../maggot/examples/iris_sklearn.py --C=10 --gamma=0.1
+python ../maggot/examples/iris_sklearn.py --C=0.001 --gamma=0.1
+python ../maggot/examples/iris_sklearn.py --C=0.001 --gamma=10
 ```
 
 And easily compare them now:
 
 ```
-python -m mag.summarize experiments --metrics=accuracy
+python -m maggot.summarize experiments --metrics=accuracy
 
 Results for experiments:
 
@@ -187,4 +187,4 @@ Various other options are available and will be documented soon.
 
 **Installation**
 
-To install, clone the repository and then use ```pip install .``` or run ```pip install git+https://github.com/ex4sperans/mag.git``` to install directly from GitHub. The repository will be added to PyPI soon to simplify the installation.
+To install, clone the repository and then use ```pip install .``` or run ```pip install git+https://github.com/ex4sperans/maggot.git``` to install directly from GitHub. The repository will be added to PyPI soon to simplify the installation.

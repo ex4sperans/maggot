@@ -4,8 +4,8 @@ from collections import defaultdict
 
 import pandas as pd
 
-from mag.config import Config
-from mag.utils import bold, green, red, blue
+from maggot.config import Config
+from maggot.utils import bold, green, red, blue
 
 pd.set_option("display.max_colwidth", 500)
 

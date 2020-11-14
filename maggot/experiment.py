@@ -3,8 +3,8 @@ import sys
 import subprocess
 import datetime
 
-from mag.config import Config
-from mag.utils import red
+from maggot.config import Config
+from maggot.utils import red
 
 
 def is_experiment(directory):

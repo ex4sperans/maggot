@@ -4,7 +4,7 @@ import argparse
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
-from mag.experiment import Experiment
+from maggot.experiment import Experiment
 
 mnist = input_data.read_data_sets("MNIST", one_hot=True)
 Dataset = tf.data.Dataset

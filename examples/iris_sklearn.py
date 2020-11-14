@@ -5,7 +5,8 @@ import pickle
 from sklearn.datasets import load_iris
 from sklearn.svm import SVC
 from sklearn.model_selection import cross_val_score, StratifiedKFold
-from mag.experiment import Experiment
+from maggot.experiment import Experiment
+
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)

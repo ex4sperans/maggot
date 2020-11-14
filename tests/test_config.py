@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from mag.config import Config
-from mag import (
+from maggot.config import Config
+from maggot import (
     use_custom_separator,
     use_default_separator,
     get_current_separator,

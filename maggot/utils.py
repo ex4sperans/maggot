@@ -1,4 +1,4 @@
-from mag.config import Config
+from maggot.config import Config
 
 
 styles = Config.from_dict(
