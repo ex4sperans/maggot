@@ -2,124 +2,191 @@ import os
 import sys
 import subprocess
 import datetime
+import shutil
+import time
+import json
 
 from maggot.config import Config
+from maggot.containers import NestedContainer
 from maggot.utils import red
-
-
-def is_experiment(directory):
-
-    exists = os.path.isdir(directory)
-    if not exists:
-        return False
-
-    has_command = os.path.isfile(os.path.join(directory, "command"))
-    has_config = os.path.isfile(os.path.join(directory, "config.json"))
-
-    return has_command and has_config
 
 
 def is_same_directory(first, second):
     return os.path.realpath(first) == os.path.realpath(second)
 
 
+class IfExistsModes:
+    MODE_PROMPT = "prompt"
+    MODE_EXIT = "exit"
+    POSSIBLE_MODES = (MODE_PROMPT, MODE_EXIT)
+
+
+class IfExistsResponses:
+    RESPONSE_EXIT = "exit"
+    RESPONSE_DELETE = "delete"
+    RESPONSE_CONTINUE = "continue"
+    POSSIBLE_RESPONSES = (RESPONSE_EXIT, RESPONSE_DELETE, RESPONSE_CONTINUE)
+
+
+def if_exists_query(experiment_dir):
+
+    question = (
+        "Experiment {experiment_dir} already exists. You can either: \n\n"
+        "  * Stop the current run and manually remove or rename the old experiment.\n"
+        "  * Agree to delete the old experiment (be careful with that) and continue the run.\n"
+        "  * Just continue executing the current script. This option is not recommended\n"
+        "    as it could overwrite data in the existing experiment directory."
+        .format(experiment_dir=experiment_dir)
+    )
+    prompt = "[exit/delete/continue]? Press [ENTER] for exit."
+
+    print(question)
+
+    while True:
+        print()
+        print(prompt)
+        choice = input().lower()
+        if choice == "":
+            return "exit"
+        elif choice in IfExistsResponses.POSSIBLE_RESPONSES:
+            return choice
+        else:
+            print(
+                "Please respond with some from {responses}"
+                .format(responses=IfExistsResponses.POSSIBLE_RESPONSES)
+            )
+
+
 class Experiment:
 
-    def __init__(self, config=None, resume_from=None,
-                 logfile_name="log", experiments_dir="./experiments",
-                 implicit_resuming=False, experiment_name=None):
-        """Create a new Experiment instance.
+    def __init__(
+        self,
+        config=None,
+        resume_from=None,
+        experiments_dir="experiments",
+        experiment_name=None,
+        if_exists_mode=IfExistsModes.MODE_PROMPT,
+        add_datetime=False
+    ):
+        """
+        Create a new Experiment instance.
 
         Args:
-            config: can be either a path to existing JSON file,
+            config:
+                Can be either a path to existing JSON file,
                 a dict, or an instance of mag.config.Config.
-            resume_from: an identifier (str) of an existing experiment or direct
-                path to an existing experiment. In the case when experiment
-                identifier is provided, experiment directory is assumed to be
-                located at experiments_dir / identifier.
-            logfile_name: str, naming for log file. This can be useful to
-                separate logs for different runs on the same experiment
-            experiments_dir: str, a path where experiment will be saved
-            implicit_resuming: bool, whether to allow resuming
-                even if experiment already exists
+            resume_from:
+                A path to an existing experiment to restore the experiment
+                from.
+            experiments_dir: str
+                A directory for storing all experiments.
             experiment_name: str
-                a custom experiment name that is used instead of one
-                generated from config parameters
+                A custom experiment name that is used instead of one
+                generated from config parameters.
+            if_exists_mode: str, one of "prompt", "exit", "continue"
+                Defines behavior in case experiment with the same name
+                already exists. The `prompt` option will prompt user with a question,
+                `exit` will simply print an error message and then
+                exit the script.
+            add_datetime: bool
+                If given, appends current datetime str to beginning of the experiment name.
         """
 
         self._custom_experiment_name = experiment_name
         self.experiments_dir = experiments_dir
-        self.logfile_name = logfile_name
+        self._add_datetime = add_datetime
+        self._datetime_string = self._make_datetime_string()
 
-        if config is None and resume_from is None:
+        config_provided = config is not None
+        resume_from_provided = resume_from is not None
+
+        if not config_provided ^ resume_from_provided:
             raise ValueError(
-                "If `config` argument was not passed explicitly, "
-                "indentifier of existing experiment "
-                "should be specified by `resume_from` argument."
+                "Either a config or path to an existing experiment should "
+                "be specified."
             )
 
-        elif config is not None and resume_from is None:
+        elif config_provided:
+            self.config = self._make_config(config)
 
-            if isinstance(config, str) and os.path.isfile(config):
-                self.config = Config.from_json(config)
-            elif isinstance(config, dict):
-                self.config = Config.from_dict(config)
-            elif isinstance(config, Config):
-                self.config = config
-            else:
-                raise ValueError(
-                    "`config` should be either a path to JSON file, "
-                    "a dictonary, or an instance of mag.config.Config"
+            exist_ok = False
+
+            if self.exists and if_exists_mode == IfExistsModes.MODE_PROMPT:
+                response = if_exists_query(self.experiment_dir)
+                if response == IfExistsResponses.RESPONSE_EXIT:
+                    self._exit()
+                elif response == IfExistsResponses.RESPONSE_DELETE:
+                    self._delete_experiment()
+                elif response == IfExistsResponses.RESPONSE_CONTINUE:
+                    exist_ok = True
+
+            elif self.exists and if_exists_mode == IfExistsModes.MODE_EXIT:
+                self._exit(
+                    "Experiment {experiment_dir} already exists, exiting.".
+                    format(experiments_dir=self.experiment_dir)
                 )
 
-            if os.path.isdir(self.experiment_dir):
-                if not implicit_resuming:
-                    raise ValueError(
-                        "Experiment with identifier {identifier} "
-                        "already exists. Set `resume_from` to the corresponding "
-                        "identifier (directory name) {directory} or delete it "
-                        "manually and then rerun the code.".format(
-                            identifier=self.config.identifier,
-                            directory=self.config.identifier
-                        )
-                    )
-            else:
-                self._makedir()
-                self._save_config()
-                self._save_git_commit_hash()
-                self._save_command()
+            self._makedir(exist_ok)
+            self._make_maggot_meta_dir(exist_ok)
+            self._save_config()
+            self._save_git_commit_hash()
+            self._save_command()
+            self._save_environ()
 
-        elif resume_from is not None and config is None:
+        elif resume_from_provided:
 
-            if is_experiment(resume_from):
-                experiment_directory = resume_from
-                _candidate_experiments_dir = self._infer_experiments_dir(
-                    experiment_directory)
+            if self.is_experiment(resume_from):
+                experiments_dir, experiment_name = self._split_experiment_dir(resume_from)
+                self.experiments_dir = experiments_dir
+                self._custom_experiment_name = experiment_name
 
-                self.experiments_dir = _candidate_experiments_dir
+            self.config = Config.from_json(self._config_file)
 
-            else:
-                experiment_directory = os.path.join(
-                    experiments_dir, resume_from)
+        self._setup_log_file()
 
-            self.config = Config.from_json(
-                os.path.join(experiment_directory, "config.json"))
-            self._register_existing_directories()
+    @staticmethod
+    def is_experiment(directory):
 
-        elif config is not None and resume_from is not None:
+        exists = os.path.isdir(directory)
+        if not exists:
+            return False
 
+        maggot_meta_exists = os.path.isdir(os.path.join(directory, ".maggot"))
+        return maggot_meta_exists
+
+    def _exit(self, message=None):
+        if message is not None:
+            print()
+            print(message)
+        sys.exit()
+
+    def _delete_experiment(self):
+        shutil.rmtree(self.experiment_dir)
+
+    def _make_config(self, config):
+        if isinstance(config, str) and os.path.isfile(config):
+            return Config.from_json(config)
+        elif isinstance(config, dict):
+            return Config.from_dict(config)
+        elif isinstance(config, Config):
+            return config
+        else:
             raise ValueError(
-                "`config` and `resume_from` arguments are mutually "
-                "exclusive: either create new experiment (by passing only "
-                "`config`) or resume from the existing experiment "
-                "(by passing only `resume_from`)"
+                "`config` should be either a path to JSON file, "
+                "a dictonary, or an instance of mag.config.Config"
             )
 
-    def _makedir(self):
-        os.makedirs(self.experiment_dir, exist_ok=False)
+    def _make_datetime_string(self):
+        return time.strftime("%Y-%m-%d-%H-%M-%S-", time.gmtime())
+
+    def _makedir(self, exist_ok=False):
+        os.makedirs(self.experiment_dir, exist_ok=exist_ok)
+
+    def _make_maggot_meta_dir(self, exist_ok=False):
+        os.makedirs(self._maggot_meta_dir, exist_ok=exist_ok)
 
     def _save_config(self):
-        self.config.to_json(self.config_file)
+        self.config.to_json(self._config_file)
 
     def _save_git_commit_hash(self):
         try:
@@ -132,69 +199,103 @@ class Experiment:
             # not a git repository
             return
 
-        with open(self.git_hash_file, "w") as f:
+        with open(self._git_hash_file, "w") as f:
             f.write(label.strip().decode())
 
-    def _infer_experiments_dir(self, experiment_directory):
-        while experiment_directory.endswith("/"):
-            # remove trailing slashes
-            experiment_directory = experiment_directory[:-1]
-        return os.path.dirname(experiment_directory)
+    def _split_experiment_dir(self, experiment_directory):
+        experiment_directory = experiment_directory.rstrip("/")
+        experiments_dir, experiment_name = os.path.split(experiment_directory)
+        return experiments_dir, experiment_name
+
+    @property
+    def _maggot_meta_dir(self):
+        return os.path.join(self.experiment_dir, ".maggot")
 
     @property
     def experiment_dir(self):
+        prefix = self._datetime_string if self._add_datetime else ""
         experiment_name = self._custom_experiment_name or self.config.identifier
-        return os.path.join(self.experiments_dir, experiment_name)
+        return os.path.join(self.experiments_dir, prefix + experiment_name)
 
     @property
-    def config_file(self):
-        return os.path.join(self.experiment_dir, "config.json")
+    def exists(self):
+        return os.path.isdir(self.experiment_dir)
 
     @property
-    def log_file(self):
-        return os.path.join(self.experiment_dir, self.logfile_name)
+    def _config_file(self):
+        return os.path.join(self._maggot_meta_dir, "config.json")
+
+    def _setup_log_file(self):
+        logdir = os.path.join(self._maggot_meta_dir, "logs")
+        os.makedirs(logdir, exist_ok=True)
+        logfile = time.strftime("%Y-%m-%d-%H-%M-%S-%s", time.gmtime())
+        logfile = os.path.join(logdir, logfile)
+        self._logfile = logfile
 
     @property
-    def git_hash_file(self):
-        return os.path.join(self.experiment_dir, "commit_hash")
+    def logfile(self):
+        return self._logfile
 
     @property
-    def results_file(self):
-        return os.path.join(self.experiment_dir, "results.json")
+    def _git_hash_file(self):
+        return os.path.join(self._maggot_meta_dir, "commit_hash")
 
     @property
-    def command_file(self):
-        return os.path.join(self.experiment_dir, "command")
+    def _results_file(self):
+        return os.path.join(self._maggot_meta_dir, "results.json")
+
+    @property
+    def _command_file(self):
+        return os.path.join(self._maggot_meta_dir, "command")
+
+    @property
+    def _environ_file(self):
+        return os.path.join(self._maggot_meta_dir, "environ")
 
     def _save_command(self):
-        with open(self.command_file, "w") as f:
-            f.write(" ".join(sys.argv) + "\n")
+        with open(self._command_file, "w") as fp:
+            fp.write(" ".join(sys.argv) + "\n")
+
+    def _save_environ(self):
+        with open(self._environ_file, "w") as fp:
+            json.dump(dict(os.environ), fp, indent=4)
+
+    @property
+    def _registered_directories_file(self):
+        return os.path.join(self._maggot_meta_dir, "registered_directories")
+
+    @property
+    def directories(self):
+        with open(self._registered_directories_file, "r") as fp:
+            directories = [d.rstrip("\n") for d in fp.readlines()]
+
+        def _join(d):
+            return os.path.join(self.experiment_dir, d)
+
+        return NestedContainer.from_dict({d: _join(d) for d in directories})
 
     def register_directory(self, dirname):
         directory = os.path.join(self.experiment_dir, dirname)
         os.makedirs(directory, exist_ok=True)
-        setattr(self, dirname, directory)
 
-    def _register_existing_directories(self):
-        for item in os.listdir(self.experiment_dir):
-            fullpath = os.path.join(self.experiment_dir, item)
-            if os.path.isdir(fullpath):
-                setattr(self, item, fullpath)
+        with open(self._registered_directories_file, "a+") as fp:
+            fp.write(dirname)
+            fp.write("\n")
 
     def register_result(self, name, value):
-        if os.path.exists(self.results_file):
-            results = Config.from_json(self.results_file).as_flat_dict()
+        if os.path.exists(self._results_file):
+            results = Config.from_json(self._results_file).as_flat_dict()
         else:
             results = dict()
         results[name] = value
-        Config.from_flat_dict(results).to_json(self.results_file)
+        Config.from_flat_dict(results).to_json(self._results_file)
 
     @property
     def results(self):
-        return Config.from_json(self.results_file)
+        return Config.from_json(self._results_file)
 
     def __enter__(self):
-        self.tee = Tee(self.log_file, "a+")
+        self.tee = Tee(self.logfile, "a+")
         return self
 
     def __exit__(self, *args):

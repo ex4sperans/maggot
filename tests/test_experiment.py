@@ -4,8 +4,8 @@ import argparse
 
 import pytest
 
-from maggot.experiment import Experiment
-from maggot.config import Config
+from maggot import Experiment
+from maggot import Config
 
 
 @pytest.fixture
@@ -35,16 +35,12 @@ def nested_dict_config(simple_dict_config):
 def test_experiment_initialization(nested_dict_config, tmpdir):
 
     experiments_dir = tmpdir.join("experiments").strpath
+    experiment = Experiment(nested_dict_config, experiments_dir=experiments_dir)
 
-    experiment = Experiment(
-        nested_dict_config, experiments_dir=experiments_dir
+    assert experiment.config.to_dict() == nested_dict_config
+    assert os.path.exists(
+        os.path.join(experiments_dir, experiment.config.identifier, ".maggot")
     )
-
-    config = Config.from_json(os.path.join(
-        experiments_dir, experiment.config.identifier, "config.json")
-    )
-
-    assert config.to_dict() == nested_dict_config
 
 
 def test_experiment_initialization_with_custom_name(nested_dict_config, tmpdir):
@@ -58,7 +54,7 @@ def test_experiment_initialization_with_custom_name(nested_dict_config, tmpdir):
     )
 
     assert os.path.isdir(os.path.join(experiments_dir, "custom"))
-    assert os.path.isfile(os.path.join(experiments_dir, "custom", "config.json"))
+    assert os.path.isdir(os.path.join(experiments_dir, "custom", ".maggot"))
 
 
 def test_experiment_restoration(nested_dict_config, tmpdir):
@@ -66,36 +62,17 @@ def test_experiment_restoration(nested_dict_config, tmpdir):
     experiments_dir = tmpdir.join("experiments").strpath
 
     # create an experiment
-    experiment = Experiment(
-        nested_dict_config, experiments_dir=experiments_dir
-    )
+    experiment = Experiment(nested_dict_config, experiments_dir=experiments_dir)
     experiment.register_directory("temp")
 
-    with pytest.raises(ValueError):
-        # since the experiment with the same identifier has been
-        # already created, experiment raises an error
-        experiment = Experiment(
-           nested_dict_config, experiments_dir=experiments_dir
-        )
-
     # test restoration from identifier
-    experiment = Experiment(
-        resume_from=experiment.config.identifier,
-        experiments_dir=experiments_dir
+    restored_experiment = Experiment(
+        resume_from=experiment.experiment_dir, experiments_dir=experiments_dir
     )
 
-    assert experiment.config.to_dict() == nested_dict_config
+    assert restored_experiment.config.to_dict() == experiment.config.to_dict()
     # test that `temp` is registered after restoration
-    assert os.path.isdir(experiment.temp)
-
-    # test restoration from directory
-    experiment = Experiment(
-        resume_from=os.path.join(experiments_dir, experiment.config.identifier)
-    )
-
-    assert experiment.config.to_dict() == nested_dict_config
-    # test that `temp` is registered after restoration
-    assert os.path.isdir(experiment.temp)
+    assert os.path.isdir(experiment.directories.temp)
 
 
 def test_experiment_logging(nested_dict_config, tmpdir):
@@ -109,14 +86,14 @@ def test_experiment_logging(nested_dict_config, tmpdir):
 
         print("test")
 
-    with open(experiment.log_file, "r") as f:
-        assert f.readlines()[-1].strip() == "test"
+    with open(experiment.logfile, "r") as fp:
+        assert fp.readlines()[-1].strip() == "test"
 
     print("test2")
     # check that nothing is logged when print is called
-    # outside with block
-    with open(experiment.log_file, "r") as f:
-        assert f.readlines()[-1].strip() == "test"
+    # outside context managaer
+    with open(experiment.logfile, "r") as fp:
+        assert fp.readlines()[-1].strip() == "test"
 
 
 def test_experiment_commit_hash_saving(nested_dict_config, tmpdir):
@@ -129,7 +106,7 @@ def test_experiment_commit_hash_saving(nested_dict_config, tmpdir):
 
     assert os.path.isfile(
         os.path.join(
-            experiment.experiment_dir, "commit_hash"
+            experiment.experiment_dir, ".maggot", "commit_hash"
         )
     )
 
@@ -138,24 +115,20 @@ def test_experiment_register_directory(nested_dict_config, tmpdir):
 
     experiments_dir = tmpdir.join("experiments").strpath
 
-    experiment = Experiment(
-        nested_dict_config, experiments_dir=experiments_dir
-    )
+    experiment = Experiment(nested_dict_config, experiments_dir=experiments_dir)
 
     experiment.register_directory("temp")
     target = os.path.join(experiment.experiment_dir, "temp")
 
-    assert os.path.isdir(target)
-    assert experiment.temp == target
+    assert os.path.isdir(experiment.directories.temp)
+    assert experiment.directories.temp == target
 
 
 def test_experiment_register_result(simple_dict_config, tmpdir):
 
     experiments_dir = tmpdir.join("experiments").strpath
 
-    experiment = Experiment(
-        simple_dict_config, experiments_dir=experiments_dir
-    )
+    experiment = Experiment(simple_dict_config, experiments_dir=experiments_dir)
 
     experiment.register_result("fold1.accuracy", 0.97)
     experiment.register_result("fold2.accuracy", 0.99)
