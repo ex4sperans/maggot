@@ -1,12 +1,13 @@
 import sys
 import argparse
 
-from maggot.scripts import summarize, show_config
+from maggot.scripts import summarize, show_config, show_command
 
 
 COMMANDS = {
     "summarize": summarize,
-    "show-config": show_config
+    "show-config": show_config,
+    "show-command": show_command
 }
 
 def collect_args():
@@ -19,6 +20,7 @@ def collect_args():
             "Available commands:\n\n"
             "  summarize\tSummarize metrics from all experiments in a given directory.\n"
             "  show-config\tShow experiment config.\n"
+            "  show-command\tShow command used to run an experiment.\n"
         ),
         add_help=False
     )
