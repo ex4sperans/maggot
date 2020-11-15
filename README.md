@@ -2,13 +2,13 @@
 
 Main issues **maggot** (at least partially) solves:
 
-* Removes the need of meditations on what is a proper name for the experiment. Say you are a machine learning researcher/engineer and you want to train a convolutional neural network with a particular set of parameters, say, 50 convolutional layers, dropout 0.5 and relu activations. You might want to create a separate directory for this experiment to store some checkpoints and summaries there. If you do not expect to have a lot of different models you can simply go off with something like "convnet50layers" or "convnet50relu". But if the number of experiments grows, you clearly need some more reliable and automated solution. **maggot** offers such a solution, so any experiment you run will have a name derived from the parameters of your model. For the mentioned model it would be "50-relu-0.5".
-* Assists reproducibility. Ever experienced situation when results you got a month ago with an "old" model are no longer reproducible? Even if you are using git, you probably have used some command line arguments that are now lost somewhere in the bash history... **maggot** stores all command line parameters in a file and duplicates the stdout to an another file. Additionaly, it saves exact git commit hash so you can easily checkout to it later and run the same code with the same parameters.
+* Removes the need for meditations on what is a proper name for the experiment. Say you are a machine learning researcher/engineer and you want to train a convolutional neural network with a particular set of parameters, say, 50 convolutional layers, dropout 0.5 and relu activations. You might want to create a separate directory for this experiment to store some checkpoints and summaries there. If you do not expect to have a lot of different models you can simply go off with something like "convnet50layers" or "convnet50relu". But if the number of experiments grows, you need a more reliable and automated solution. **maggot** offers such a solution - any experiment you run will have a name derived from the configuration parameters of your model. For the aforementioned model it would be "50-relu-0.5". You still can use a custom experiment name if you want to.
+* Assists reproducibility. Ever experienced a situation when results you got a month ago with an "old" model are no longer reproducible? Even if you are using git, you probably had used some command-line arguments that are now lost somewhere in the bash history... **maggot** stores all command line parameters, saves full stdout, and much more.
 * Restoring a model is now really painless! Since **maggot** saves all the parameters you used to run the experiment, all you need to restore a model is to provide a path to a saved experiment.
 
-Let's consider a toy example and train an SVM on Iris dataset.
+Let's consider a toy example and train an SVM on the Iris dataset.
 
-First, import required packages and define command line arguments:
+First, import required packages and define command-line arguments:
 
 ``` python
 
@@ -19,7 +19,7 @@ import pickle
 from sklearn.datasets import load_iris
 from sklearn.svm import SVC
 from sklearn.model_selection import cross_val_score, StratifiedKFold
-from mag.experiment import Experiment
+from maggot import Experiment
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -73,20 +73,25 @@ Or the experiment directory:
 
 ```
 >>> experiment.experiment_dir
-./experiments/5-1.0-0.01
+experiments/5-1.0-0.01
 ```
 
 Lets examine what this directory contains by now.
 
 ```
-tree experiments/5-1.0-0.01/
+tree -a experiments/5-1.0-0.01/
 
-├── command
-├── config.json
-└── log
+experiments/5-1.0-0.01/
+└── .maggot
+    ├── command
+    ├── config.json
+    ├── environ
+    ├── logs
+    │   └── 2020-11-15-14-53-22-1605444802
+    └── results.json
 ```
 
-`command` file contains the command we run from terminal, `config.json` stores the same configuration we used to run the experiment and `log` file will store any stdout we see during the experiment.
+The `command` file contains the command we run from terminal, `config.json` stores the configuration, and `logs` directory will store any output you get during the run.
 
 Lets train the model!
 
@@ -106,7 +111,7 @@ with experiment:
     ).mean()
 ```
 
-Note that we can reach parameters using dot notation rather than `["keyword"]` notation, which looks much nicer.
+Note that we can access parameters using dot notation rather than `["keyword"]` notation, which looks much nicer.
 
 We can print accuracy and this will be stored in a log file:
 
@@ -120,7 +125,7 @@ Additionaly it's possible to register `score` as a result of this experiment:
 experiment.register_result("accuracy", score)
 ```
 
-This creates `results.json` file in experiment directory with the following content:
+This creates a `results.json` file in the `.maggot` directory with the following content:
 
 ```
 {
@@ -140,22 +145,28 @@ with open(os.path.join(experiment.experiment_dir, "model.pkl"), "wb") as f:
 See how directory structure has changed:
 
 ```
-├── command
-├── config.json
-├── log
-├── model.pkl
-└── results.json
+tree -a experiments/5-1.0-0.01/
+
+experiments/5-1.0-0.01/
+├── .maggot
+│   ├── command
+│   ├── config.json
+│   ├── environ
+│   ├── logs
+│   │   └── 2020-11-15-14-53-22-1605444802
+│   └── results.json
+└── model.pkl
 ```
 
 If we want to restore the experiment we can easily do:
 
 ```python
 with Experiment(resume_from="experiments/5-1.0-0.01") as experiment:
-    config = experiment.config    # the same config we created on the training phase
+    config = experiment.config    # the same config we created above
     ...
 ```
 
-Configuration file and other related stuff will be loaded automatically.
+Configuration file and other stuff is loaded automatically.
 
 We can easily run several experiments with different parameters:
 
@@ -167,24 +178,23 @@ python ../maggot/examples/iris_sklearn.py --C=0.001 --gamma=0.1
 python ../maggot/examples/iris_sklearn.py --C=0.001 --gamma=10
 ```
 
-And easily compare them now:
+And now let's compare them!
 
 ```
-python -m maggot.summarize experiments --metrics=accuracy
+maggot summarize experiments --sort accuracy
 
-Results for experiments:
+Results for /home/dmytro/code/stuff/mag-tests/experiments:
 
               accuracy
-5-0.001-10.0  0.793333
-5-0.001-0.1   0.933333
-5-1.0-0.01    0.933333
-5-10.0-0.1    0.980000
-5-10.0-0.01   0.966667
-5-10.0-1.0    0.960000
+5-10.0-0.1    0.986667
+5-10.0-0.01   0.973333
+5-10.0-1.0    0.953333
+5-0.001-0.1   0.926667
+5-0.001-10.0  0.813333
 ```
 
 Various other options are available and will be documented soon.
 
 **Installation**
 
-To install, clone the repository and then use ```pip install .``` or run ```pip install git+https://github.com/ex4sperans/maggot.git``` to install directly from GitHub. The repository will be added to PyPI soon to simplify the installation.
+To install, clone the repository and then use ```pip install .``` or simply run ```pip install git+https://github.com/ex4sperans/maggot.git``` to install directly from GitHub. The repository will be added to PyPI soon to simplify the installation.
