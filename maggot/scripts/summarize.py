@@ -97,6 +97,7 @@ def collect_args(args):
 
     return args
 
+
 def main(args=None):
 
     args = collect_args(args)
