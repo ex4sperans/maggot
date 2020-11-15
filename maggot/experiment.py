@@ -38,7 +38,10 @@ def if_exists_query(experiment_dir):
         "    as it could overwrite data in the existing experiment directory."
         .format(experiment_dir=experiment_dir)
     )
-    prompt = "[exit/delete/continue]? Press [ENTER] for exit."
+    prompt = (
+        "[exit/delete/continue]? Type in the desired option or "
+        "simply press [ENTER] to exit."
+    )
 
     print(question)
 
@@ -66,7 +69,7 @@ class Experiment:
         experiments_dir="experiments",
         experiment_name=None,
         if_exists_mode=IfExistsModes.MODE_PROMPT,
-        add_datetime=False
+        add_date=False
     ):
         """
         Create a new Experiment instance.
@@ -88,14 +91,14 @@ class Experiment:
                 already exists. The `prompt` option will prompt user with a question,
                 `exit` will simply print an error message and then
                 exit the script.
-            add_datetime: bool
-                If given, appends current datetime str to beginning of the experiment name.
+            add_date: bool
+                If given, appends current date str to beginning of the experiment name.
         """
 
         self._custom_experiment_name = experiment_name
         self.experiments_dir = experiments_dir
-        self._add_datetime = add_datetime
-        self._datetime_string = self._make_datetime_string()
+        self._add_date = add_date
+        self._date_string = self._make_date_string()
 
         config_provided = config is not None
         resume_from_provided = resume_from is not None
@@ -176,8 +179,8 @@ class Experiment:
                 "a dictonary, or an instance of mag.config.Config"
             )
 
-    def _make_datetime_string(self):
-        return time.strftime("%Y-%m-%d-%H-%M-%S-", time.gmtime())
+    def _make_date_string(self):
+        return time.strftime("%Y-%m-%d-", time.gmtime())
 
     def _makedir(self, exist_ok=False):
         os.makedirs(self.experiment_dir, exist_ok=exist_ok)
@@ -213,7 +216,7 @@ class Experiment:
 
     @property
     def experiment_dir(self):
-        prefix = self._datetime_string if self._add_datetime else ""
+        prefix = self._date_string if self._add_date else ""
         experiment_name = self._custom_experiment_name or self.config.identifier
         return os.path.join(self.experiments_dir, prefix + experiment_name)
 
