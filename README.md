@@ -200,7 +200,7 @@ Results for /home/dmytro/code/stuff/mag-tests/experiments:
 Currently, the following commands are supported:
 
 ```
-  summarize	    Summarize metrics from all experiments in a given directory.
+  summarize     Summarize metrics from all experiments in a given directory.
   show-config	Show experiment config.
   show-command	Show command used to run an experiment.
   config-diff	Show diff between configs in two experiments.
