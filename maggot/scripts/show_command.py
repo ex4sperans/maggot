@@ -14,7 +14,7 @@ def collect_args(args):
     parser = argparse.ArgumentParser(
         prog="show-command",
         description=bold("Show command that was used to run a particular experiment."),
-        usage=("maggot show-command EXPERIMENT ..."),
+        usage=("maggot show-command EXPERIMENT"),
     )
 
     parser.add_argument(
