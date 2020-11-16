@@ -1,10 +1,26 @@
-**maggot** is a very simple but useful library with primary goal to remove the need of custom experiment tracking approaches most people typically use. The focus is on reproducibility and removing boilerplate code.
+**maggot** is a small but useful library with the primary goal to remove the need for custom experiment tracking approaches most people typically use. The focus is on reproducibility and getting rid of the boilerplate code.
+
+**Highlights**
+
+* Single directory to store all run artifacts
+* Out-of-the-box reproducibility
+* Easy-to-use CLI to inspect and compare runs
+* Minimalistic API - add as little as a couple of lines of code to start
+* Written in pure python - no external dependencies like C++ or Java
+
+**Installation**
+
+```pip install maggot```
+
+**Motivation** 
 
 Main issues **maggot** (at least partially) solves:
 
 * Removes the need for meditations on what is a proper name for the experiment. Say you are a machine learning researcher/engineer and you want to train a convolutional neural network with a particular set of parameters, say, 50 convolutional layers, dropout 0.5 and relu activations. You might want to create a separate directory for this experiment to store some checkpoints and summaries there. If you do not expect to have a lot of different models you can simply go off with something like "convnet50layers" or "convnet50relu". But if the number of experiments grows, you need a more reliable and automated solution. **maggot** offers such a solution - any experiment you run will have a name derived from the configuration parameters of your model. For the aforementioned model it would be "50-relu-0.5". You still can use a custom experiment name if you want to.
 * Assists reproducibility. Ever experienced a situation when results you got a month ago with an "old" model are no longer reproducible? Even if you are using git, you probably had used some command-line arguments that are now lost somewhere in the bash history... **maggot** stores all command line parameters, saves full stdout, and much more.
 * Restoring a model is now really painless! Since **maggot** saves all the parameters you used to run the experiment, all you need to restore a model is to provide a path to a saved experiment.
+
+**Example**
 
 Let's consider a toy example and train an SVM on the Iris dataset.
 
@@ -207,7 +223,3 @@ Currently, the following commands are supported:
 ```
 
 Simple type `maggot COMMAND` in terminal to see help for a specific command.
-
-**Installation**
-
-To install, simply run `pip install maggot`, or clone the repository and then use ```pip install .``` or simply run ```pip install git+https://github.com/ex4sperans/maggot.git``` to install directly from GitHub.
