@@ -193,7 +193,20 @@ Results for /home/dmytro/code/stuff/mag-tests/experiments:
 5-0.001-10.0  0.813333
 ```
 
-Various other options are available and will be documented soon.
+**CLI**
+
+**maggot** has a minimalistic CLI interface for working with experiments and being able to inspect them, compare between them and so forth.
+
+Currently, the following commands are supported:
+
+```
+  summarize	    Summarize metrics from all experiments in a given directory.
+  show-config	Show experiment config.
+  show-command	Show command used to run an experiment.
+  config-diff	Show diff between configs in two experiments.
+```
+
+Simple type `maggot COMMAND` in terminal to see help for a specific command.
 
 **Installation**
 
