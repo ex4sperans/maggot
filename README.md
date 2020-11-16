@@ -210,4 +210,4 @@ Simple type `maggot COMMAND` in terminal to see help for a specific command.
 
 **Installation**
 
-To install, clone the repository and then use ```pip install .``` or simply run ```pip install git+https://github.com/ex4sperans/maggot.git``` to install directly from GitHub. The repository will be added to PyPI soon to simplify the installation.
+To install, simply run `pip install maggot`, or clone the repository and then use ```pip install .``` or simply run ```pip install git+https://github.com/ex4sperans/maggot.git``` to install directly from GitHub.
