@@ -26,7 +26,8 @@ class NestedContainer:
         """Dumps container into a JSON file"""
 
         dirname = os.path.dirname(filepath)
-        os.makedirs(dirname, exist_ok=True)
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
 
         with open(filepath, "w") as f:
             json.dump(self.to_dict(), f, indent=4, sort_keys=True)
@@ -119,7 +120,12 @@ class NestedContainer:
             for name, value in flat.items():
                 if "." in name:
                     prefix, *suffix = name.split(".")
-                    if prefix not in nested_dict:
+                    prefix_not_in_nested_dict = prefix not in nested_dict
+                    prefix_in_nested_dict_but_shallow = (
+                        prefix in nested_dict and
+                        not isinstance(nested_dict[prefix], dict)
+                    )
+                    if prefix_not_in_nested_dict or prefix_in_nested_dict_but_shallow:
                         nested_dict[prefix] = dict()
                     _fill(nested_dict[prefix], {".".join(suffix): value})
                 else:
